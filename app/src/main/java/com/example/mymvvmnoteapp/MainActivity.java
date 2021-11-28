@@ -69,6 +69,13 @@ public class MainActivity extends AppCompatActivity {
 
         }).attachToRecyclerView(mainBinding.recyclerView);
 
+        noteAdapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Note note) {
+                Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
+            }
+        });
+
 
 
     }

@@ -11,13 +11,11 @@ import com.example.mymvvmnoteapp.databinding.NoteItemBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder>{
+public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
 
     private List<Note> notes = new ArrayList<>();
-
-
+    private OnItemClickListener listener;
 
 
     @NonNull
@@ -33,6 +31,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder>{
         holder.noteItemBinding.textViewTitle.setText(currentNote.getTitle());
         holder.noteItemBinding.textViewDescription.setText(currentNote.getDescription());
         holder.noteItemBinding.textViewPriority.setText(String.valueOf(currentNote.getPriority()));
+
+        holder.noteItemBinding.getRoot().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int position = holder.getAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(notes.get(position));
+                }
+            }
+        });
     }
 
 
@@ -50,14 +58,23 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder>{
         return notes.get(position);
     }
 
-    class NoteHolder extends RecyclerView.ViewHolder {
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Note note);
+    }
+
+    static class NoteHolder extends RecyclerView.ViewHolder {
         //Using View Binding
         private NoteItemBinding noteItemBinding;
+
 
         public NoteHolder(@NonNull NoteItemBinding noteItemBinding) {
             super(noteItemBinding.getRoot());
 
-            this.noteItemBinding = noteItemBinding;
+
         }
     }
 }
