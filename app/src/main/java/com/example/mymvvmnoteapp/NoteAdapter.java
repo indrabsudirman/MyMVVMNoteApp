@@ -32,13 +32,10 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
         holder.noteItemBinding.textViewDescription.setText(currentNote.getDescription());
         holder.noteItemBinding.textViewPriority.setText(String.valueOf(currentNote.getPriority()));
 
-        holder.noteItemBinding.getRoot().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int position = holder.getAdapterPosition();
-                if (listener != null && position != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(notes.get(position));
-                }
+        holder.noteItemBinding.getRoot().setOnClickListener(view -> {
+            int position1 = holder.getAdapterPosition();
+            if (listener != null && position1 != RecyclerView.NO_POSITION) {
+                listener.onItemClick(notes.get(position1));
             }
         });
     }
@@ -73,6 +70,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
 
         public NoteHolder(@NonNull NoteItemBinding noteItemBinding) {
             super(noteItemBinding.getRoot());
+            //Kalo dihapus bisa NPE TextView (View) di Item RV
+            this.noteItemBinding = noteItemBinding;
 
 
         }

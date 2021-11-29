@@ -15,7 +15,10 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
 
-public class AddNoteActivity extends AppCompatActivity {
+public class AddAndEditNoteActivity extends AppCompatActivity {
+
+    public static final String EXTRA_ID =
+            "com.example.mymvvmnoteapp.EXTRA_ID";
 
     public static final String EXTRA_TITLE =
             "com.example.mymvvmnoteapp.EXTRA_TITLE";
@@ -40,7 +43,17 @@ public class AddNoteActivity extends AppCompatActivity {
 
         //Support Action Toolbar, add close icon
         Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_close);
-        setTitle("Add Note");
+        Intent intent = getIntent();
+        //Check if Intent came from edit menu on Main Activity
+        if (intent.hasExtra(EXTRA_ID)) {
+            setTitle("Edit Note");
+            addNoteBinding.editTextTitle.setText(intent.getStringExtra(EXTRA_TITLE));
+            addNoteBinding.editTextDescription.setText(intent.getStringExtra(EXTRA_DESCRIPTION));
+            addNoteBinding.numberPickerPriority.setValue(intent.getIntExtra(EXTRA_PRIORITY, 1));
+        } else {
+            setTitle("Add Note");
+        }
+
     }
 
     //function to save note
@@ -57,8 +70,14 @@ public class AddNoteActivity extends AppCompatActivity {
             data.putExtra(EXTRA_TITLE, title);
             data.putExtra(EXTRA_DESCRIPTION, description);
             data.putExtra(EXTRA_PRIORITY, priority);
-            overridePendingTransition(0,0);
 
+
+            int id = getIntent().getIntExtra(EXTRA_ID, -1);
+            if (id != -1) {
+                data.putExtra(EXTRA_ID, id);
+            }
+
+            overridePendingTransition(0,0);
             setResult(RESULT_OK, data);
             finish();
 

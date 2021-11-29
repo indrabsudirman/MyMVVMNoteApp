@@ -1,12 +1,9 @@
 package com.example.mymvvmnoteapp;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,11 +19,10 @@ import android.view.MenuItem;
 import com.example.mymvvmnoteapp.databinding.ActivityMainBinding;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
     public static final int ADD_NOTE_REQUEST = 1;
+    public static final int EDIT_NOTE_REQUEST = 2;
     private NoteViewmodel noteViewmodel;
     private ActivityMainBinding mainBinding;
 
@@ -69,11 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
         }).attachToRecyclerView(mainBinding.recyclerView);
 
-        noteAdapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Note note) {
-                Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
-            }
+        noteAdapter.setOnItemClickListener(note -> {
+            Intent intent = new Intent(MainActivity.this, AddAndEditNoteActivity.class);
+            intent.putExtra(AddAndEditNoteActivity.EXTRA_ID, note.getId());
+            intent.putExtra(AddAndEditNoteActivity.EXTRA_TITLE, note.getTitle());
+            intent.putExtra(AddAndEditNoteActivity.EXTRA_DESCRIPTION, note.getDescription());
+            intent.putExtra(AddAndEditNoteActivity.EXTRA_PRIORITY, note.getPriority());
+            mStartForResultUpdate.launch(intent);
         });
 
 
@@ -105,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fabClick() {
         mainBinding.buttonAddNote.setOnClickListener(view -> {
-            mStartForResult.launch(new Intent(this, AddNoteActivity.class));
+            mStartForResult.launch(new Intent(this, AddAndEditNoteActivity.class));
             overridePendingTransition(0,0);
         });
     }
@@ -116,9 +113,9 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     assert result.getData() != null;
-                    String title = result.getData().getStringExtra(AddNoteActivity.EXTRA_TITLE);
-                    String description = result.getData().getStringExtra(AddNoteActivity.EXTRA_DESCRIPTION);
-                    int priority = result.getData().getIntExtra(AddNoteActivity.EXTRA_PRIORITY, 1);
+                    String title = result.getData().getStringExtra(AddAndEditNoteActivity.EXTRA_TITLE);
+                    String description = result.getData().getStringExtra(AddAndEditNoteActivity.EXTRA_DESCRIPTION);
+                    int priority = result.getData().getIntExtra(AddAndEditNoteActivity.EXTRA_PRIORITY, 1);
 
                     Note note = new Note(title, description, priority);
                     //Insert note to Room database
@@ -132,6 +129,33 @@ public class MainActivity extends AppCompatActivity {
                     overridePendingTransition(0,0);
                     Snackbar.make(findViewById(R.id.constraintLayoutMain),
                             "Note not saved!",
+                            Snackbar.LENGTH_SHORT)
+                            .show();
+                }
+            });
+
+    ActivityResultLauncher<Intent> mStartForResultUpdate = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    int id = result.getData().getIntExtra(AddAndEditNoteActivity.EXTRA_ID, -1);
+                    assert result.getData() != null;
+                    String title = result.getData().getStringExtra(AddAndEditNoteActivity.EXTRA_TITLE);
+                    String description = result.getData().getStringExtra(AddAndEditNoteActivity.EXTRA_DESCRIPTION);
+                    int priority = result.getData().getIntExtra(AddAndEditNoteActivity.EXTRA_PRIORITY, 1);
+
+                    Note note = new Note(title, description, priority);
+                    note.setId(id);
+                    //Update note to Room database
+                    noteViewmodel.updateNote(note);
+
+                    Snackbar.make(findViewById(R.id.constraintLayoutMain),
+                            "Success updated note.",
+                            Snackbar.LENGTH_SHORT)
+                            .show();
+                } else {
+                    overridePendingTransition(0,0);
+                    Snackbar.make(findViewById(R.id.constraintLayoutMain),
+                            "Note not updated!",
                             Snackbar.LENGTH_SHORT)
                             .show();
                 }
