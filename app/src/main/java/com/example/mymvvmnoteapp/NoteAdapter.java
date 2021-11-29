@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mymvvmnoteapp.databinding.NoteItemBinding;
@@ -12,10 +14,27 @@ import com.example.mymvvmnoteapp.databinding.NoteItemBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
+public class NoteAdapter extends ListAdapter<Note, NoteAdapter.NoteHolder> {
 
-    private List<Note> notes = new ArrayList<>();
     private OnItemClickListener listener;
+
+    public NoteAdapter() {
+        super(DIFF_CALLBACK);
+    }
+
+    public static final DiffUtil.ItemCallback<Note> DIFF_CALLBACK = new DiffUtil.ItemCallback<Note>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
+            return oldItem.getTitle().equals(newItem.getTitle()) &&
+                    oldItem.getDescription().equals(newItem.getDescription()) &&
+                    oldItem.getPriority() == newItem.getPriority();
+        }
+    };
 
 
     @NonNull
@@ -27,7 +46,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull NoteHolder holder, int position) {
-        Note currentNote = notes.get(position);
+        Note currentNote = getItem(position);
         holder.noteItemBinding.textViewTitle.setText(currentNote.getTitle());
         holder.noteItemBinding.textViewDescription.setText(currentNote.getDescription());
         holder.noteItemBinding.textViewPriority.setText(String.valueOf(currentNote.getPriority()));
@@ -35,24 +54,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteHolder> {
         holder.noteItemBinding.getRoot().setOnClickListener(view -> {
             int position1 = holder.getAdapterPosition();
             if (listener != null && position1 != RecyclerView.NO_POSITION) {
-                listener.onItemClick(notes.get(position1));
+                listener.onItemClick(getItem(position1));
             }
         });
     }
 
 
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
-
-    public void setNotes(List<Note> notes) {
-        this.notes = notes;
-        notifyDataSetChanged();
-    }
 
     public Note getNoteAt(int position) {
-        return notes.get(position);
+        return getItem(position);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {

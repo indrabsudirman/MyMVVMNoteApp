@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         mainBinding.recyclerView.setAdapter(noteAdapter);
 
         noteViewmodel = new ViewModelProvider(this).get(NoteViewmodel.class);
-        noteViewmodel.getAllNotes().observe(this, noteAdapter::setNotes); //Lambda style
+        noteViewmodel.getAllNotes().observe(this, noteAdapter::submitList); //Lambda style
 
         //Delete note while swipe
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
